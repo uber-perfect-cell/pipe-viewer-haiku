@@ -1,3 +1,7 @@
+## This fork
+
+An implementation of pipe-viewer, a gtk based application on Haiku! Doing this because is SMTube is so bloody ugly and outdated. This fork does ignore the CLI version.
+
 ## pipe-viewer
 
 A lightweight application (fork of [straw-viewer](https://github.com/trizen/straw-viewer)) for searching and playing videos from YouTube.
