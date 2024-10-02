@@ -13,9 +13,9 @@
 # See https://dev.perl.org/licenses/ for more information.
 #
 #-------------------------------------------------------
-#  GTK Pipe Viewer
-#  Fork: 30 October 2020
-#  Edit: 11 August 2024
+#  GTK Pipe Viewer (Haiku version)
+#  https://github.com/uber-perfect-cell/pipe-viewer-haiku
+#  Official:
 #  https://github.com/trizen/pipe-viewer
 #-------------------------------------------------------
 
@@ -164,17 +164,17 @@ my %symbols = (
                thumbs_up => '👍',
                type      => '💡',
                author    => '😃',
-               author_id => '🤖',
-               average   => '📊',
-               category  => '🗃️',
+               author_id => 'ID:',
+               average   => '~',
+               category  => 'Category',
                play      => '▶️',
-               views     => '👀',
+               views     => 'Views',
                heart     => '❤️',
-               published => '⏱️',
-               updated   => '✨',
-               numero    => '#️⃣',
-               video     => '🎞️',
-               subs      => '👪',
+               published => 'Published',
+               updated   => 'Updated',
+               numero    => '#Number',
+               video     => 'Video',
+               subs      => 'Subscribers',
               );
 
 # Main configuration
@@ -194,6 +194,10 @@ my %CONFIG = (
                               audio => q{--audio-file=*AUDIO*},
                               fs    => q{--fullscreen},
                               arg   => q{--really-quiet --force-media-title=*TITLE* --no-ytdl --no-terminal *VIDEO*},
+                             },
+                      MediaPlayer => {
+                              cmd   => q{MediaPlayer},
+                              fs    => q{--fullscreen},
                              },
                       mpvraw => {
                                  cmd => q{mpv},
@@ -239,8 +243,8 @@ my %CONFIG = (
     comments_order              => 'top',    # valid values: top, new
     comments_author_color       => undef,
     comments_date_color         => undef,
-    comments_body_color         => undef,
-    comments_load_more_color    => undef,
+    comments_body_color         => 'red',
+    comments_load_more_color    => 'red',
     comments_show_replies_color => undef,
 
     # API
@@ -286,8 +290,8 @@ my %CONFIG = (
     thousand_separator => q{,},
     downloads_dir      => curdir(),
     web_browser        => undef,        # defaults to $ENV{WEBBROWSER} or xdg-open
-    terminal           => undef,        # autodetect it later
-    terminal_exec      => q{-e '%s'},
+    terminal           => '/boot/system/apps/Terminal',        # autodetect it later
+    terminal_exec      => q{'%s'},
     pipe_viewer        => undef,
     pipe_viewer_args   => [],
 
@@ -297,7 +301,7 @@ my %CONFIG = (
 
     # Watch history
     watch_history       => 1,
-    watch_history_color => 'blue',
+    watch_history_color => 'red',
     watch_history_file  => $watched_file,
 
     # Subscribed channels
@@ -3122,8 +3126,8 @@ sub add_video_entry {
                                     . join(
                                            "\n",
                                            map { sprintf("%s   %s", $_->[0], $_->[1]) } (
-                                                                                    [$symbols{author} => encode_entities($yv_utils->get_channel_title($video))],
-                                                                                    [$symbols{published} => ($yv_utils->get_publication_date($video) // 'N/A')],
+                                                                                    [encode_entities($yv_utils->get_channel_title($video))],
+                                                                                    [Published => ($yv_utils->get_publication_date($video) // 'N/A')],
                                            )
                                           )
                                     . "\n\n"
@@ -3133,7 +3137,7 @@ sub add_video_entry {
     my $info_label = reflow_text(
                          join("\n",
                               map { sprintf("%s   %s", $_->[0], $_->[1]) }
-                                ([$symbols{play} => $yv_utils->get_time($video)], [$symbols{views} => $yv_utils->set_thousands($yv_utils->get_views($video))],))
+                                ([$symbols{play} => $yv_utils->get_time($video)], [Views => $yv_utils->set_thousands($yv_utils->get_views($video))],))
     );
 
     $liststore->set(
@@ -3167,8 +3171,8 @@ sub add_channel_entry {
         sprintf(
             "<big><b>%s</b></big>
 
-$symbols{author}\t %s
-$symbols{author_id}\t %s
+Author:\t %s
+Author ID:\t %s
 
 <i>%s</i>",
             encode_entities($title),
@@ -3181,8 +3185,8 @@ $symbols{author_id}\t %s
     my $type_label = reflow_text(
         sprintf(
             "$symbols{type}\t Channel
-$symbols{video}\t %s videos
-$symbols{subs}\t %s subs",
+Videos:\t %s videos
+Subscribers:\t %s subs",
 
             $yv_utils->set_thousands($yv_utils->get_video_count($channel)),
             $yv_utils->short_human_number($yv_utils->get_subscriber_count($channel)),
@@ -3220,7 +3224,7 @@ sub add_playlist_entry {
         sprintf(
             "<big><b>%s</b></big>
 
-$symbols{author}\t %s
+Author:\t %s
 $symbols{play}\t %s
 
 <i>%s</i>",
@@ -3235,7 +3239,7 @@ $symbols{play}\t %s
     my $type_label = reflow_text(
         sprintf(
             "$symbols{type}\t Playlist
-$symbols{video}\t %s videos",
+Videos:\t %s videos",
             $yv_utils->set_thousands($yv_utils->get_playlist_video_count($playlist) // 0)
                )
     );
