@@ -1,6 +1,10 @@
 ## This fork
 
-An implementation of pipe-viewer, a gtk based application on Haiku! Doing this because is SMTube is so bloody ugly and outdated. This fork does ignore the CLI version.
+An implementation of pipe-viewer, a gtk based application on Haiku! Doing this because is SMTube is so bloody ugly and outdated. This fork does ignore the CLI version. Differences are:
+- New icons and theming
+- A mimalloc check
+- Different prefrences
+This fork has 0 technical improvements, all changes are made on basis of my own prefrences.
 
 ## To Do
 
