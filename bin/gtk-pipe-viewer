@@ -57,6 +57,7 @@ use WWW::PipeViewer::RegularExpressions;
 use WWW::PipeViewer::Utils;
 use WWW::PipeViewer::Worker;
 
+
 use Gtk3         qw(-init);
 use Storable     qw();
 use Scalar::Util qw(looks_like_number);
@@ -81,6 +82,50 @@ my $share_dir =
 # Configuration dir/file
 my $home_dir;
 my $xdg_config_home = $ENV{XDG_CONFIG_HOME};
+
+
+
+use Gtk3 '-init';
+use Glib 'TRUE', 'FALSE';
+
+my $mimallocFound = -e "/boot/system/lib/libmimalloc.so.2.1"; #Yes it's hardcoded, :P yeah
+
+sub show_popup {
+    my $dialog = Gtk3::Dialog->new(
+        'Mimalloc missing!',
+        undef,
+        'destroy-with-parent',
+        'gtk-ok' => 'ok'
+    );
+
+    my $content_area = $dialog->get_content_area();
+    my $label = Gtk3::Label->new("Mimalloc isn't found!\nThe program will run, however it will be a poor user experience.\nYou can change the startup command of the video players in the prefrences if you really don't want mimalloc.\nIf you believe this is a mistake. Sorry! Make sure the directory 'boot/system/lib/libmimallosc.so.2.1' is real.\nTo install mimalloc, run: 'pkgman install mimalloc', or search it on the depot.\n\nI did this because the system memory allocator is horrible for media playing.");
+    my $checkbox = Gtk3::CheckButton->new_with_label("Do not show this message again");
+
+    $content_area->pack_start($label, TRUE, TRUE, 2);
+    $content_area->pack_start($checkbox, TRUE, TRUE, 2);
+
+    $dialog->show_all();
+
+    $dialog->run();
+    my $do_not_show_again = $checkbox->get_active();
+    $dialog->destroy();
+
+    return $do_not_show_again;
+}
+
+if (!$mimallocFound) {
+    my $do_not_show_again = show_popup();
+    if ($do_not_show_again) {
+        open my $fh, '>', 'choiceformessage.txt' or die "Could not open file: $!";
+        print $fh "do_not_show_again=1\n";
+        close $fh;
+    }
+} else {
+    print("\nmimalloc found\n");
+}
+
+
 
 if ($xdg_config_home and -d -w $xdg_config_home) {
     require File::Basename;
@@ -182,25 +227,25 @@ my %CONFIG = (
 
     video_players => {
                       vlc => {
-                              cmd   => q{vlc},
+                              cmd   => q{LD_PRELOAD=/boot/system/lib/libmimalloc.so.2.1 vlc},
                               srt   => q{--sub-file=*SUB*},
                               audio => q{--input-slave=*AUDIO*},
                               fs    => q{--fullscreen},
                               arg   => q{--quiet --play-and-exit --no-video-title-show --input-title-format=*TITLE* *VIDEO*},
                              },
                       mpv => {
-                              cmd   => q{mpv},
+                              cmd   => q{LD_PRELOAD=/boot/system/lib/libmimalloc.so.2.1 mpv},
                               srt   => q{--sub-file=*SUB*},
                               audio => q{--audio-file=*AUDIO*},
                               fs    => q{--fullscreen},
                               arg   => q{--really-quiet --force-media-title=*TITLE* --no-ytdl --no-terminal *VIDEO*},
                              },
                       MediaPlayer => {
-                              cmd   => q{MediaPlayer},
+                              cmd   => q{LD_PRELOAD=/boot/system/lib/libmimalloc.so.2.1 MediaPlayer},
                               fs    => q{--fullscreen},
                              },
                       mpvraw => {
-                                 cmd => q{mpv},
+                                 cmd => q{LD_PRELOAD=/boot/system/lib/libmimalloc.so.2.1 mpv},
                                  arg => q{--ytdl-raw-options-append="format-sort=ext,res:*RESOLUTION*" --no-terminal *URL*},
                                  fs  => q{--fullscreen},
                                  srt => q{--sub-file=*SUB*},
